@@ -5,11 +5,19 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	socket := os.Getenv("SOCKPATH")
+	socket := ""
+	tcpaddr := ":8080"
+	listen := os.Getenv("LISTEN")
+	n := strings.Count(listen, ":")
+	if n == 0 {
+		socket = listen
+	} else if n == 1 {
+		tcpaddr = listen
+	}
 
 	httpForwarder := NewAsyncHttpForwarder()
 
@@ -22,11 +30,8 @@ func main() {
 		}
 		log.Fatal(http.Serve(l, httpForwarder))
 	} else {
-		if port == "" {
-			port = "8080"
-		}
-		// listen on TCP port
-		log.Printf("HTTP forwarder listening on port %s", port)
-		log.Fatal(http.ListenAndServe(":"+port, httpForwarder))
+		// listen on TCP address
+		log.Printf("HTTP forwarder listening on tcp address %s", tcpaddr)
+		log.Fatal(http.ListenAndServe(tcpaddr, httpForwarder))
 	}
 }
