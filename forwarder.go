@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -20,7 +22,7 @@ func NewAsyncHttpForwarder() *AsyncHttpForwarder {
 
 func (p *AsyncHttpForwarder) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// forward the request asyncronously
-	go p.forward(req)
+	go p.forward(p.copyRequest(req))
 }
 
 func copyHeader(dst, src http.Header) {
@@ -44,19 +46,14 @@ var hopHeaders = []string{
 	"Upgrade",
 }
 
-func (p *AsyncHttpForwarder) forward(req *http.Request) {
-	transport := p.Transport
-	if transport == nil {
-		transport = http.DefaultTransport
-	}
-
+func (p *AsyncHttpForwarder) copyRequest(req *http.Request) *http.Request {
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
 	target, err := url.Parse(req.RequestURI)
 	if err != nil {
 		log.Printf("http: proxy error: %v", err)
-		return
+		return nil
 	}
 
 	outreq.URL = target
@@ -82,11 +79,24 @@ func (p *AsyncHttpForwarder) forward(req *http.Request) {
 		}
 	}
 
+	b := bytes.NewBuffer([]byte{})
+	b.ReadFrom(req.Body)
+	outreq.Body = ioutil.NopCloser(b)
+
+	return outreq
+}
+
+func (p *AsyncHttpForwarder) forward(outreq *http.Request) {
+	transport := p.Transport
+	if transport == nil {
+		transport = http.DefaultTransport
+	}
+
 	res, err := transport.RoundTrip(outreq)
 
 	if err != nil {
 		log.Printf("http: proxy error: %v", err)
 	} else {
-		log.Println(res.StatusCode, req.URL.String())
+		log.Println(res.StatusCode, outreq.Method, outreq.URL.String())
 	}
 }

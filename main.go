@@ -21,9 +21,10 @@ func main() {
 
 	httpForwarder := NewAsyncHttpForwarder()
 
+	log.Println("HTTP forwarder: https://github.com/99designs/httpforwarder")
 	if socket != "" {
 		// listen on socket
-		log.Printf("HTTP forwarder listening on socket %s", socket)
+		log.Printf("Listening on socket %s", socket)
 		l, err := net.Listen("unix", socket)
 		if err != nil {
 			log.Fatal(err)
@@ -31,7 +32,7 @@ func main() {
 		log.Fatal(http.Serve(l, httpForwarder))
 	} else {
 		// listen on TCP address
-		log.Printf("HTTP forwarder listening on tcp address %s", tcpaddr)
+		log.Printf("Listening on tcp address %s", tcpaddr)
 		log.Fatal(http.ListenAndServe(tcpaddr, httpForwarder))
 	}
 }
