@@ -52,7 +52,7 @@ func (p *AsyncHttpForwarder) copyRequest(req *http.Request) *http.Request {
 
 	target, err := url.Parse(req.RequestURI)
 	if err != nil {
-		log.Printf("http: proxy error: %v", err)
+		log.Printf("http: url parse error: %v", err)
 		return nil
 	}
 
@@ -96,7 +96,9 @@ func (p *AsyncHttpForwarder) forward(outreq *http.Request) {
 
 	if err != nil {
 		log.Printf("http: proxy error: %v", err)
-	} else {
-		log.Println(res.StatusCode, outreq.Method, outreq.URL.String())
+		return
 	}
+
+	log.Println(res.StatusCode, outreq.Method, outreq.URL.String())
+	defer res.Body.Close()
 }
