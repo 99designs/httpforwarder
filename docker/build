@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+set -x
+
+HERE=$(cd $(dirname $0); pwd -P)
+cd "$HERE/.."
+
+docker build --tag 99designs/httpforwarder .

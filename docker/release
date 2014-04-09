@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+set -x
+
+HERE="$(cd $(dirname $0); pwd -P)"
+cd "$HERE/.."
+
+# Push a release to quay.io.
+# You'll need to `docker login` the first time you do this.
+
+REPOSITORY="quay.io/99designs/httpforwarder"
+docker build --tag "$REPOSITORY:$(date +"%Y%m%d-%H%M%S")" .
+docker push $REPOSITORY
