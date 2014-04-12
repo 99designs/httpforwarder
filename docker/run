@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+set -x
+
+HERE=$(cd $(dirname $0); pwd -P)
+cd "$HERE/.."
+
+# Run a container with the codebase mounted at /app.
+#
+# Note: this container is designed to be linked to other containers, not
+# accessed directly. Therefore it doesn't expose a port to your development VM.
+
+CONTAINER_NAME="httpforwarder"
+DOCKER_IMAGE="99designs/httpforwarder"
+DOCKER_VOLUMES="--volume $(pwd):/app"
+MY_INIT=1
+
+. $(dirname $0)/shared-docker-run.bash
